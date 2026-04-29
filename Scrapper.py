@@ -19,12 +19,12 @@ app.add_middleware(
 )
 
 # Persistent browser context to avoid re-login
-STORAGE_STATE = "qwen_auth.json"
+STORAGE_STATE = "deepseek_auth.json"
 
 class PromptRequest(BaseModel):
     prompt: str
 
-async def scrape_qwen(prompt: str) -> str:
+async def scrape_deepseek(prompt: str) -> str:
     async with async_playwright() as p:
         # Launch browser with saved auth state if exists
         browser = await p.chromium.launch(headless=False)
@@ -35,8 +35,8 @@ async def scrape_qwen(prompt: str) -> str:
         page = await context.new_page()
         
         try:
-            # Navigate to Qwen chat
-            await page.goto("https://chat.qwen.ai", wait_until="domcontentloaded")
+            # Navigate to deepseek chat
+            await page.goto("https://chat.deepseek.com", wait_until="domcontentloaded")
             await page.wait_for_timeout(5000)  # Let JS load
             
             # Find input textarea - adjust selector if UI changes
@@ -68,9 +68,9 @@ async def scrape_qwen(prompt: str) -> str:
                     last_text = current_text
             
             result = last_text.strip()
-            print("[Qwen Response]:", result)
+            print("[deepseek Response]:", result)
             if not result:
-                raise Exception("Empty response from Qwen chat")
+                raise Exception("Empty response from deepseek chat")
             return result
             
         except Exception as e:
@@ -80,10 +80,10 @@ async def scrape_qwen(prompt: str) -> str:
         finally:
             await browser.close()
 
-@app.post("/scrape-qwen")
+@app.post("/scrape-deepseek")
 async def scrape_with_prompt(req: PromptRequest):
     try:
-        tailored = await scrape_qwen(req.prompt)
+        tailored = await scrape_deepseek(req.prompt)
         # Clean up common artifacts
         tailored = re.sub(r'^```(?:text)?\s*', '', tailored, flags=re.MULTILINE)
         tailored = re.sub(r'\s*```$', '', tailored, flags=re.MULTILINE)
